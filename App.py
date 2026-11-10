@@ -19,7 +19,7 @@ if "score" not in st.session_state:
     st.session_state.num2 = random.randint(1, 100)
     st.session_state.start_time = time.time()
     st.session_state.game_over = False
-    st.session_state.input_counter = 0  # 動態改變 key 以確保換題時清空
+    st.session_state.input_counter = 0
 
 # 側邊欄：難易度選擇
 st.sidebar.header("⚙️ 遊戲設定")
@@ -48,7 +48,7 @@ if not st.session_state.game_over:
     current_input_key = f"quiz_input_{st.session_state.input_counter}"
     
     with st.form(key="quiz_form"):
-        user_input = st.text_input("請輸入您的答案：", key=current_input_key, placeholder="輸入答案...")
+        user_input = st.text_input("請輸入您的答案：", key=current_input_key, placeholder="輸入數字後按 Enter 送出...")
         submit_button = st.form_submit_button(label="提交答案", type="primary")
         
         if submit_button:
@@ -63,7 +63,7 @@ if not st.session_state.game_over:
                     st.error(f"❌ 答錯囉！正確答案是 {correct}")
                 
                 st.session_state.question_count += 1
-                st.session_state.input_counter += 1  # 換題時更新 key
+                st.session_state.input_counter += 1  # 換題時更新 key 確保內容清空
                 
                 if st.session_state.question_count < st.session_state.max_questions:
                     low, high = (1, 10) if "簡單" in st.session_state.difficulty else (1, 100) if "中等" in st.session_state.difficulty else (1, 1000)
@@ -77,19 +77,6 @@ if not st.session_state.game_over:
                     st.rerun()
             else:
                 st.warning("⚠️ 請輸入有效的整數數字！")
-                
-    # 注入 JavaScript 自動將游標聚焦到輸入框
-    st.markdown("""
-        <script>
-            setTimeout(() => {
-                const doc = window.parent.document;
-                const inputs = doc.querySelectorAll('input[type="text"]');
-                if (inputs.length > 0) {
-                    inputs[inputs.length - 1].focus();
-                }
-            }, 200);
-        </script>
-    """, unsafe_allow_html=True)
 
 else:
     # 結算畫面
