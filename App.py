@@ -48,7 +48,8 @@ if not st.session_state.game_over:
     current_input_key = f"quiz_input_{st.session_state.input_counter}"
     
     with st.form(key="quiz_form"):
-        user_input = st.text_input("請輸入您的答案：", key=current_input_key, placeholder="輸入數字後按 Enter 送出...")
+        # 加上 autocomplete="off" 減少瀏覽器彈出歷史紀錄
+        user_input = st.text_input("請輸入您的答案：", key=current_input_key, placeholder="請輸入數字...", autocomplete="off")
         submit_button = st.form_submit_button(label="提交答案", type="primary")
         
         if submit_button:
@@ -63,7 +64,7 @@ if not st.session_state.game_over:
                     st.error(f"❌ 答錯囉！正確答案是 {correct}")
                 
                 st.session_state.question_count += 1
-                st.session_state.input_counter += 1  # 換題時更新 key 確保內容清空
+                st.session_state.input_counter += 1  # 換題時更新 key 確保欄位清空
                 
                 if st.session_state.question_count < st.session_state.max_questions:
                     low, high = (1, 10) if "簡單" in st.session_state.difficulty else (1, 100) if "中等" in st.session_state.difficulty else (1, 1000)
@@ -73,10 +74,29 @@ if not st.session_state.game_over:
                     st.rerun()
                 else:
                     st.session_state.game_over = True
+                    # 遊戲結束時自動寫入排行榜
+                    elapsed = time.time() - st.session_state.start_time
+                    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    record_line = f"[{now_str}] 得分: {st.session_state.score}/{st.session_state.max_questions} | 用時: {elapsed:.2f}秒 | 難度: {st.session_state.difficulty}\n"
+                    with open("math_leaderboard.txt", "a", encoding="utf-8") as f:
+                        f.write(record_line)
                     time.sleep(0.8)
                     st.rerun()
             else:
                 st.warning("⚠️ 請輸入有效的整數數字！")
+
+    # 嘗試利用微型 JS 腳本協助聚焦到輸入框
+    st.markdown("""
+        <script>
+            setTimeout(() => {
+                const doc = window.parent.document;
+                const inputs = doc.querySelectorAll('input[type="text"]');
+                if (inputs.length > 0) {
+                    inputs[inputs.length - 1].focus();
+                }
+            }, 100);
+        </script>
+    """, unsafe_allow_html=True)
 
 else:
     # 結算畫面
