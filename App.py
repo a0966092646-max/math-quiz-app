@@ -45,11 +45,10 @@ if not st.session_state.game_over:
     # 顯示題目
     st.info(f"請計算： **{st.session_state.num1} + {st.session_state.num2} = ?**")
     
-    # 使用 st.form 讓使用者輸入完後可以直接按 Enter 鍵送出答案
     current_input_key = f"quiz_input_{st.session_state.input_counter}"
     
     with st.form(key="quiz_form"):
-        user_input = st.text_input("請輸入您的答案：", key=current_input_key, placeholder="請直接輸入數字並按 Enter...")
+        user_input = st.text_input("請輸入您的答案：", key=current_input_key, placeholder="輸入答案...")
         submit_button = st.form_submit_button(label="提交答案", type="primary")
         
         if submit_button:
@@ -64,7 +63,7 @@ if not st.session_state.game_over:
                     st.error(f"❌ 答錯囉！正確答案是 {correct}")
                 
                 st.session_state.question_count += 1
-                st.session_state.input_counter += 1  # 換題時更新 key，確保下一題乾淨空白
+                st.session_state.input_counter += 1  # 換題時更新 key
                 
                 if st.session_state.question_count < st.session_state.max_questions:
                     low, high = (1, 10) if "簡單" in st.session_state.difficulty else (1, 100) if "中等" in st.session_state.difficulty else (1, 1000)
@@ -78,6 +77,20 @@ if not st.session_state.game_over:
                     st.rerun()
             else:
                 st.warning("⚠️ 請輸入有效的整數數字！")
+                
+    # 注入 JavaScript 自動將游標聚焦到輸入框
+    st.markdown("""
+        <script>
+            setTimeout(() => {
+                const doc = window.parent.document;
+                const inputs = doc.querySelectorAll('input[type="text"]');
+                if (inputs.length > 0) {
+                    inputs[inputs.length - 1].focus();
+                }
+            }, 200);
+        </script>
+    """, unsafe_allow_html=True)
+
 else:
     # 結算畫面
     elapsed = time.time() - st.session_state.start_time
