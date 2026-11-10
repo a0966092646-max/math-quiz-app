@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 
 # 網頁標題與設定
-st.set_page_config(page_title="數學加法大挑戰", page_chars="➕", layout="centered")
+st.set_page_config(page_title="數學加法大挑戰", page_icon="➕", layout="centered")
 
 st.title("➕ 數學加法大挑戰 (行動網頁版)")
 
