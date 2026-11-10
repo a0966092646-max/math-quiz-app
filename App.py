@@ -19,7 +19,7 @@ if "score" not in st.session_state:
     st.session_state.num2 = random.randint(1, 100)
     st.session_state.start_time = time.time()
     st.session_state.game_over = False
-    st.session_state.input_counter = 0  # 用來動態改變輸入框 key 以達到清空效果
+    st.session_state.input_counter = 0  # 動態改變 key 以確保換題時清空
 
 # 側邊欄：難易度選擇
 st.sidebar.header("⚙️ 遊戲設定")
@@ -45,38 +45,39 @@ if not st.session_state.game_over:
     # 顯示題目
     st.info(f"請計算： **{st.session_state.num1} + {st.session_state.num2} = ?**")
     
-    # 建立動態 key 名稱，確保換題時產生全新元件來清空內容
+    # 使用 st.form 讓使用者輸入完後可以直接按 Enter 鍵送出答案
     current_input_key = f"quiz_input_{st.session_state.input_counter}"
-    user_input = st.text_input("請輸入您的答案：", key=current_input_key, placeholder="請直接輸入數字...")
     
-    # 提交按鈕
-    if st.button("提交答案", type="primary"):
-        if user_input.strip().isdigit():
-            ans = int(user_input.strip())
-            correct = st.session_state.num1 + st.session_state.num2
-            
-            if ans == correct:
-                st.success("🎉 答對了！")
-                st.session_state.score += 1
+    with st.form(key="quiz_form"):
+        user_input = st.text_input("請輸入您的答案：", key=current_input_key, placeholder="請直接輸入數字並按 Enter...")
+        submit_button = st.form_submit_button(label="提交答案", type="primary")
+        
+        if submit_button:
+            if user_input.strip().isdigit():
+                ans = int(user_input.strip())
+                correct = st.session_state.num1 + st.session_state.num2
+                
+                if ans == correct:
+                    st.success("🎉 答對了！")
+                    st.session_state.score += 1
+                else:
+                    st.error(f"❌ 答錯囉！正確答案是 {correct}")
+                
+                st.session_state.question_count += 1
+                st.session_state.input_counter += 1  # 換題時更新 key，確保下一題乾淨空白
+                
+                if st.session_state.question_count < st.session_state.max_questions:
+                    low, high = (1, 10) if "簡單" in st.session_state.difficulty else (1, 100) if "中等" in st.session_state.difficulty else (1, 1000)
+                    st.session_state.num1 = random.randint(low, high)
+                    st.session_state.num2 = random.randint(low, high)
+                    time.sleep(0.8)
+                    st.rerun()
+                else:
+                    st.session_state.game_over = True
+                    time.sleep(0.8)
+                    st.rerun()
             else:
-                st.error(f"❌ 答錯囉！正確答案是 {correct}")
-            
-            st.session_state.question_count += 1
-            st.session_state.input_counter += 1  # 改變計數器，讓下一題的 input 換一個全新 ID 達到清空效果
-            
-            if st.session_state.question_count < st.session_state.max_questions:
-                low, high = (1, 10) if "簡單" in st.session_state.difficulty else (1, 100) if "中等" in st.session_state.difficulty else (1, 1000)
-                st.session_state.num1 = random.randint(low, high)
-                st.session_state.num2 = random.randint(low, high)
-                # 稍微停頓 0.8 秒讓使用者看清楚對錯提示再跳轉
-                time.sleep(0.8)
-                st.rerun()
-            else:
-                st.session_state.game_over = True
-                time.sleep(0.8)
-                st.rerun()
-        else:
-            st.warning("⚠️ 請輸入有效的整數數字！")
+                st.warning("⚠️ 請輸入有效的整數數字！")
 else:
     # 結算畫面
     elapsed = time.time() - st.session_state.start_time
