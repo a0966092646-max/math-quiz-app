@@ -4,12 +4,12 @@ import time
 from datetime import datetime
 import os
 
-# 網頁標題與設定
+# 網頁標題與設定 (修正 page_icon 參數)
 st.set_page_config(page_title="數學加法大挑戰", page_icon="➕", layout="centered")
 
 st.title("➕ 數學加法大挑戰 (行動網頁版)")
 
-# 初始化 Session State（用來在網頁重新整理時保存遊戲狀態）
+# 初始化 Session State
 if "score" not in st.session_state:
     st.session_state.score = 0
     st.session_state.question_count = 0
@@ -19,6 +19,7 @@ if "score" not in st.session_state:
     st.session_state.num2 = random.randint(1, 100)
     st.session_state.start_time = time.time()
     st.session_state.game_over = False
+    st.session_state.ans_input = ""  # 初始化輸入框變數
 
 # 側邊欄：難易度選擇
 st.sidebar.header("⚙️ 遊戲設定")
@@ -31,7 +32,7 @@ if new_diff != st.session_state.difficulty:
     st.session_state.question_count = 0
     st.session_state.start_time = time.time()
     st.session_state.game_over = False
-    # 決定範圍
+    st.session_state.ans_input = ""
     low, high = (1, 10) if "簡單" in new_diff else (1, 100) if "中等" in new_diff else (1, 1000)
     st.session_state.num1 = random.randint(low, high)
     st.session_state.num2 = random.randint(low, high)
@@ -46,7 +47,8 @@ if not st.session_state.game_over:
     
     # 使用表單讓手機輸入答案更順暢
     with st.form(key="quiz_form"):
-        user_input = st.text_input("請輸入您的答案：", key="ans_input")
+        # 綁定 value=st.session_state.ans_input 確保每次能被清空
+        user_input = st.text_input("請輸入您的答案：", value=st.session_state.ans_input, key="quiz_input")
         submit_button = st.form_submit_button(label="提交答案")
         
         if submit_button:
@@ -61,9 +63,9 @@ if not st.session_state.game_over:
                     st.error(f"❌ 答錯囉！正確答案是 {correct}")
                 
                 st.session_state.question_count += 1
+                st.session_state.ans_input = ""  # 提交後清空輸入框變數
                 
                 if st.session_state.question_count < st.session_state.max_questions:
-                    # 產生下一題
                     low, high = (1, 10) if "簡單" in st.session_state.difficulty else (1, 100) if "中等" in st.session_state.difficulty else (1, 1000)
                     st.session_state.num1 = random.randint(low, high)
                     st.session_state.num2 = random.randint(low, high)
@@ -86,6 +88,7 @@ else:
         st.session_state.question_count = 0
         st.session_state.start_time = time.time()
         st.session_state.game_over = False
+        st.session_state.ans_input = ""
         st.rerun()
 
 # 顯示排行榜
